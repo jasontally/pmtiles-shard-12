@@ -1,0 +1,17 @@
+{
+  // One shard of the Protomaps basemap. 13 of these hold the whole archive,
+  // because a Workers Builds container has 20 GB of disk and the archive is
+  // 118 GiB. See sharding.md in pmtiles-cf-snippet.
+  //
+  // The name must match the Worker in the Cloudflare dashboard, or the build
+  // fails. It is generated per shard from SHARD_INDEX at repo creation time.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pmtiles-shard-12",
+  "compatibility_date": "2026-10-07",
+
+  // No main. Requests that match a part file are served by the assets platform,
+  // which is free, so no Worker is invoked and nothing is billed.
+  "assets": {
+    "directory": "./public"
+  }
+}

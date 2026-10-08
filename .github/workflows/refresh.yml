@@ -1,0 +1,67 @@
+name: Refresh shard 12
+
+# One of 13. Each shard repo has this workflow, and the crons are staggered by
+# half an hour so only one shard builds at a time. All 13 fire on Sunday, inside
+# the window in which Protomaps has never published in 159 weeks of release
+# history: 00:16 to 07:34 UTC.
+#
+# This workflow holds no credentials and needs none. It commits archive.json, and
+# that commit is what starts the Cloudflare build. Cloudflare injects its own
+# token where the archive is fetched, so nothing outside Cloudflare ever holds
+# one, and there is no secret for this repo to leak.
+#
+# Most Sundays this makes no commit, because the newest eligible Protomaps build
+# has not changed, and a no-commit week costs no build minutes and uploads no
+# data. Skipping the commit is the point, not a side effect: a refresh is 13
+# builds and 126 GB of upload.
+on:
+  schedule:
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even if the archive has not changed
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# One refresh per shard repo at a time. A queued run is left to finish rather than
+# cancelled, because a run cancelled after committing but before the build starts
+# would leave the next run thinking there was nothing to do.
+concurrency:
+  group: refresh-shard-12
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # Shard 12 has the 06:00 UTC slot on Sunday. Working out which build
+      # to hold is done by the same rule in all 13 repos, so they agree without
+      # talking to each other. See the header of refresh.mjs.
+      - name: Decide which archive to hold
+        id: decide
+        run: node refresh.mjs ${{ inputs.force == true && '--force' || '' }}
+
+      - name: Commit the archive choice
+        if: ${{ steps.decide.outputs.changed == 'true' }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add archive.json
+          git commit -q -m "chore: refresh to $(node -p "require('./archive.json').key")"
+          git push
+
+      # The commit is the trigger. Workers Builds rebuilds this shard from the
+      # archive named in archive.json, and Cloudflare injects the token it needs.
+      - name: Report
+        if: ${{ always() }}
+        run: echo "shard 12, slot 06:00 UTC on Sunday"
