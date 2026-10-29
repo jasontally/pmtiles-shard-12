@@ -1,5 +1,5 @@
 {
-  "key": "20261024.pmtiles",
-  "url": "https://build.protomaps.com/20261024.pmtiles",
+  "key": "20260811.pmtiles",
+  "url": "https://build.protomaps.com/20260811.pmtiles",
   "note": "Which Protomaps Basemap build this shard holds. .github/workflows/refresh.yml commits a newer key here, and that commit is what triggers the build. Do not hand edit without knowing why."
 }
