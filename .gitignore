@@ -1,0 +1,10 @@
+# The part files: thousands of them, 10 GB. Never commit these.
+public/
+
+*.pmtiles
+.cache/
+
+node_modules/
+.wrangler/
+__pycache__/
+.DS_Store

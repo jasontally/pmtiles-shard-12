@@ -1,0 +1,12 @@
+{
+  "name": "pmtiles-shard-12",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "One shard of a PMTiles archive, served from Cloudflare Static Assets",
+  "scripts": {
+    "build": "node build.mjs",
+    "deploy": "npx wrangler deploy",
+    "dry-run": "DRY_RUN=1 node build.mjs"
+  }
+}
